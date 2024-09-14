@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/example.dir/example.cpp.o -o example  -Wl,-rpath,/opt/homebrew/lib /opt/homebrew/lib/liblibleidenalg.0.11.1.dylib /opt/homebrew/lib/libigraph.3.1.8.dylib
