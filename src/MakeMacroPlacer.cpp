@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // BSD 3-Clause License
 //
-// Copyright (c) 2021, The Regents of the University of California
+// Copyright (c) 2019-2020, The Regents of the University of California
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,44 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <map>
-#include <vector>
+#include "mpl2/MakeMacroPlacer.h"
 
-#include "object.h"
+#include <tcl.h>
+
+#include "mpl2/rtl_mp.h"
+#include "ord/OpenRoad.hh"
+#include "sta/StaMain.hh"
+
+namespace sta {
+extern const char* mpl2_tcl_inits[];
+}
+
+extern "C" {
+extern int Mpl2_Init(Tcl_Interp* interp);
+}
+
+namespace ord {
+
+mpl2::MacroPlacer2* makeMacroPlacer2()
+{
+  return new mpl2::MacroPlacer2;
+}
+
+void initMacroPlacer2(OpenRoad* openroad)
+{
+  Tcl_Interp* tcl_interp = openroad->tclInterp();
+  Mpl2_Init(tcl_interp);
+  sta::evalTclInit(tcl_interp, sta::mpl2_tcl_inits);
+  openroad->getMacroPlacer2()->init(openroad->getDbNetwork(),
+                                    openroad->getDb(),
+                                    openroad->getSta(),
+                                    openroad->getLogger(),
+                                    openroad->getPartitionMgr());
+}
+
+void deleteMacroPlacer2(mpl2::MacroPlacer2* macro_placer)
+{
+  delete macro_placer;
+}
+
+}  // namespace ord

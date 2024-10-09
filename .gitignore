@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# large test cases
+test/BP/*
+test/SW/*

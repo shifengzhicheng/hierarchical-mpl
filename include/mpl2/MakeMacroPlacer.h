@@ -33,11 +33,18 @@
 
 #pragma once
 
-// ************************************************
-// leidenGraph
-// ************************************************
+namespace mpl2 {
+class MacroPlacer2;
+}
 
-#include <map>
-#include <vector>
+namespace ord {
 
-#include "object.h"
+class OpenRoad;
+
+mpl2::MacroPlacer2* makeMacroPlacer2();
+
+void initMacroPlacer2(OpenRoad* openroad);
+
+void deleteMacroPlacer2(mpl2::MacroPlacer2* macro_placer);
+
+}  // namespace ord

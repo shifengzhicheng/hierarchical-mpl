@@ -1,5 +1,5 @@
 # 加载扩展库
-load ./libgraphextension.so Graphextension
+load ./build/lib/libgraphextension.so Graphextension
 
 
 # 读取图文件

@@ -74,11 +74,6 @@ void ClusteringEngine::run()
     tree_->has_std_cells = false;
     treatEachMacroAsSingleCluster();
   } else {
-    /* 
-      Leiden algorithm is used to improve quality of macro placement.
-      Only for std cells
-    */ 
-    leidenClusterForStdCells(); 
     multilevelAutocluster(tree_->root);
 
     std::vector<std::vector<Cluster*>> mixed_leaves;
@@ -1422,6 +1417,7 @@ void ClusteringEngine::breakLargeFlatCluster(Cluster* parent)
         loads_id.insert(cluster_vertex_id_map[cluster_id]);
       }
     }
+    
     loads_id.insert(driver_id);
     if (driver_id != -1 && loads_id.size() > 1
         && loads_id.size() < tree_->large_net_threshold) {
@@ -2143,4 +2139,5 @@ void ClusteringEngine::createClusterForEachMacro(
     tree_->maps.id_to_cluster[id_++] = macro_cluster;
   }
 }
+
 }  // namespace mpl2
