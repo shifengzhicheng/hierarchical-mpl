@@ -100,9 +100,6 @@ class LIBLEIDENALG_EXPORT Optimiser
 template <class T> T* Optimiser::find_partition(Graph* graph)
 {
   T* partition = new T(graph);
-  #ifdef DEBUG
-    cerr << "Use default partition (all nodes in own community)" << endl;
-  #endif
   this->optimise_partition(partition);
   return partition;
 }
@@ -110,9 +107,6 @@ template <class T> T* Optimiser::find_partition(Graph* graph)
 template <class T> T* Optimiser::find_partition(Graph* graph, double resolution_parameter)
 {
   T* partition = new T(graph, resolution_parameter);
-  #ifdef DEBUG
-    cerr << "Use default partition (all nodes in own community)" << endl;
-  #endif
   this->optimise_partition(partition);
   return partition;
 }

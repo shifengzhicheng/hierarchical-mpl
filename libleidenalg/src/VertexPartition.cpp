@@ -1,9 +1,4 @@
-#include "MutableVertexPartition.h"
-
-#ifdef DEBUG
-  using std::cerr;
-  using std::endl;
-#endif
+#include "VertexPartition.h"
 
 /****************************************************************************
   Create a new vertex partition.
@@ -125,9 +120,6 @@ size_t MutableVertexPartition::n_communities()
 
 void MutableVertexPartition::init_admin()
 {
-  #ifdef DEBUG
-    cerr << "void MutableVertexPartition::init_admin()" << endl;
-  #endif
   size_t n = this->graph->vcount();
 
   // First determine number of communities (assuming they are consecutively numbered
@@ -180,23 +172,11 @@ void MutableVertexPartition::init_admin()
     double w = this->graph->edge_weight(e);
     // Add weight to the outgoing weight of community of v
     this->_total_weight_from_comm[v_comm] += w;
-    #ifdef DEBUG
-      cerr << "\t" << "Add (" << v << ", " << u << ") weight " << w << " to from_comm " << v_comm <<  "." << endl;
-    #endif
     // Add weight to the incoming weight of community of u
     this->_total_weight_to_comm[u_comm] += w;
-    #ifdef DEBUG
-      cerr << "\t" << "Add (" << v << ", " << u << ") weight " << w << " to to_comm " << u_comm << "." << endl;
-    #endif
     if (!this->graph->is_directed())
     {
-      #ifdef DEBUG
-        cerr << "\t" << "Add (" << u << ", " << v << ") weight " << w << " to from_comm " << u_comm <<  "." << endl;
-      #endif
       this->_total_weight_from_comm[u_comm] += w;
-      #ifdef DEBUG
-        cerr << "\t" << "Add (" << u << ", " << v << ") weight " << w << " to to_comm " << v_comm << "." << endl;
-      #endif
       this->_total_weight_to_comm[v_comm] += w;
     }
     // If it is an edge within a community
@@ -204,9 +184,6 @@ void MutableVertexPartition::init_admin()
     {
       this->_total_weight_in_comm[v_comm] += w;
       this->_total_weight_in_all_comms += w;
-      #ifdef DEBUG
-        cerr << "\t" << "Add (" << v << ", " << u << ") weight " << w << " to in_comm " << v_comm << "." << endl;
-      #endif
     }
   }
 
@@ -216,10 +193,6 @@ void MutableVertexPartition::init_admin()
     double n_c = this->csize(c);
     double possible_edges = this->graph->possible_edges(n_c);
 
-    #ifdef DEBUG
-      cerr << "\t" << "c=" << c << ", n_c=" << n_c << ", possible_edges=" << possible_edges << endl;
-    #endif
-
     this->_total_possible_edges_in_all_comms += possible_edges;
 
     // It is possible that some community have a zero size (if the order
@@ -228,10 +201,6 @@ void MutableVertexPartition::init_admin()
     if (this->_cnodes[c] == 0)
       this->_empty_communities.push_back(c);
   }
-
-  #ifdef DEBUG
-    cerr << "exit MutableVertexPartition::init_admin()" << endl << endl;
-  #endif
 
 }
 
@@ -330,41 +299,6 @@ void MutableVertexPartition::relabel_communities(vector<size_t> const& new_comm_
   this->_cached_weight_all_community.resize(nbcomms, 0);
   this->_current_node_cache_community_all = n + 1;
 
-  #ifdef DEBUG
-    if (this->_csize.size() < this->_n_communities ||
-        this->_cnodes.size() < this->_n_communities ||
-        this->_total_weight_in_comm.size() < this->_n_communities ||
-        this->_total_weight_to_comm.size() < this->_n_communities ||
-        this->_total_weight_from_comm.size() < this->_n_communities ||
-        this->_cached_weight_from_community.size() < this->_n_communities ||
-        this->_cached_weight_to_community.size() < this->_n_communities ||
-        this->_cached_weight_all_community.size() < this->_n_communities) {
-      cerr << "ERROR: MutableVertexPartition bookkeeping is too small after rearrange_community_labels." << endl;
-    }
-
-    this->init_admin();
-
-    for (size_t c = 0; c < this->_n_communities; c++) {
-      if (fabs(new_total_weight_in_comm[c] - this->_total_weight_in_comm[c]) > 1e-6 ||
-          fabs(new_total_weight_from_comm[c] - this->_total_weight_from_comm[c]) > 1e-6 ||
-          fabs(new_total_weight_to_comm[c] - this->_total_weight_to_comm[c]) > 1e-6 ||
-          new_csize[c] != this->_csize[c] ||
-          new_cnodes[c] != this->_cnodes[c]) {
-        cerr << "ERROR: MutableVertexPartition bookkeeping is incorrect after rearrange_community_labels." << endl;
-        cerr << "Community c has " << endl
-             << "total_weight_in_comm=" << new_total_weight_in_comm[c]
-             << " (should be " << this->_total_weight_in_comm[c] << ")" << endl
-             << "total_weight_from_comm=" << new_total_weight_from_comm[c]
-             << " (should be " << this->_total_weight_from_comm[c] << ")" << endl
-             << "total_weight_to_comm=" << new_total_weight_to_comm[c]
-             << " (should be " << this->_total_weight_to_comm[c] << ")" << endl
-             << "csize=" << new_csize[c]
-             << " (should be " << this->_csize[c] << ")" << endl
-             << "cnodes=" << new_cnodes[c]
-             << " (should be " << this->_cnodes[c] << ")" << endl;
-      }
-    }
-  #endif
 }
 
 vector<size_t> MutableVertexPartition::rank_order_communities(vector<MutableVertexPartition*> partitions)
@@ -372,17 +306,6 @@ vector<size_t> MutableVertexPartition::rank_order_communities(vector<MutableVert
   size_t nb_layers = partitions.size();
   size_t nb_comms = partitions[0]->n_communities();
 
-  #ifdef DEBUG
-    size_t n = partitions[0]->graph->vcount();
-    for (size_t layer = 0; layer < nb_layers; layer++)
-    {
-      for (size_t v = 0; v < n; v++)
-      {
-        if (partitions[0]->membership(v) != partitions[layer]->membership(v))
-          cerr << "Membership of all partitions are not equal";
-      }
-    }
-  #endif
   // First sort the communities by size
   // Csizes
   // first - community
@@ -424,10 +347,6 @@ vector<size_t> MutableVertexPartition::rank_order_communities(vector<MutableVert
 void MutableVertexPartition::renumber_communities(vector<size_t> const& fixed_nodes, vector<size_t> const& fixed_membership)
 {
 
-  #ifdef DEBUG
-    cerr << "void MutableVertexPartition::renumber_communities(" << &fixed_nodes << ", " << &fixed_membership << ")" << endl;
-  #endif
-
   // Skip whole thing if there are no fixed nodes for efficiency
   if (fixed_nodes.size() == 0)
     return;
@@ -443,9 +362,6 @@ void MutableVertexPartition::renumber_communities(vector<size_t> const& fixed_no
     if (!comm_assigned_bool[_membership[v]])
     {
       size_t fixed_comm_v = fixed_membership[v];
-      #ifdef DEBUG
-        cerr << "Setting map for fixed community " << fixed_comm_v << endl;
-      #endif
       new_comm_id[_membership[v]] = fixed_comm_v;
       comm_assigned_bool[_membership[v]] = true;
       new_comm_assigned.push(fixed_comm_v);
@@ -463,9 +379,6 @@ void MutableVertexPartition::renumber_communities(vector<size_t> const& fixed_no
           cc++;
       }
       // Assign the community
-      #ifdef DEBUG
-        cerr << "Setting map for free community " << cc << endl;
-      #endif
       new_comm_id[c] = cc++;
     }
   }
@@ -493,16 +406,10 @@ size_t MutableVertexPartition::get_empty_community()
 
 void MutableVertexPartition::set_membership(vector<size_t> const& membership)
 {
-  #ifdef DEBUG
-    cerr << "void MutableVertexPartition::set_membership(" << &membership << ")" << endl;
-  #endif
   this->_membership = membership;
 
   this->clean_mem();
   this->init_admin();
-  #ifdef DEBUG
-    cerr << "exit MutableVertexPartition::set_membership(" << &membership << ")" << endl;
-  #endif
 }
 
 size_t MutableVertexPartition::add_empty_community()
@@ -525,9 +432,6 @@ size_t MutableVertexPartition::add_empty_community()
   this->_cached_weight_to_community.resize(this->_n_communities);
 
   this->_empty_communities.push_back(new_comm);
-  #ifdef DEBUG
-    cerr << "Added empty community " << new_comm << endl;
-  #endif
   return new_comm;
 }
 
@@ -539,11 +443,6 @@ size_t MutableVertexPartition::add_empty_community()
 *****************************************************************************/
 void MutableVertexPartition::move_node(size_t v,size_t new_comm)
 {
-  #ifdef DEBUG
-    cerr << "void MutableVertexPartition::move_node(" << v << ", " << new_comm << ")" << endl;
-    if (new_comm >= this->n_communities())
-      cerr << "ERROR: New community (" << new_comm << ") larger than total number of communities (" << this->n_communities() << ")." << endl;
-  #endif
   // Move node and update internal administration
   if (new_comm >= this->_n_communities)
   {
@@ -561,9 +460,6 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
   // Keep track of all possible edges in all communities;
   double node_size = this->graph->node_size(v);
   size_t old_comm = this->_membership[v];
-  #ifdef DEBUG
-    cerr << "Node size: " << node_size << ", old comm: " << old_comm << ", new comm: " << new_comm << endl;
-  #endif
   // Incidentally, this is independent of whether we take into account self-loops or not
   // (i.e. whether we count as n_c^2 or as n_c(n_c - 1). Be careful to do this before the
   // adaptation of the community sizes, otherwise the calculations are incorrect.
@@ -571,68 +467,36 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
   {
     double delta_possible_edges_in_comms = 2.0*node_size*(ptrdiff_t)(this->_csize[new_comm] - this->_csize[old_comm] + node_size)/(2.0 - this->graph->is_directed());
     _total_possible_edges_in_all_comms += delta_possible_edges_in_comms;
-    #ifdef DEBUG
-      cerr << "Change in possible edges in all comms: " << delta_possible_edges_in_comms << endl;
-    #endif
   }
 
   // Remove from old community
-  #ifdef DEBUG
-    cerr << "Removing from old community " << old_comm << ", community size: " << this->_csize[old_comm] << endl;
-  #endif
   this->_cnodes[old_comm] -= 1;
   this->_csize[old_comm] -= node_size;
-  #ifdef DEBUG
-    cerr << "Removed from old community." << endl;
-  #endif
 
   // We have to use the size of the set of nodes rather than the csize
   // to account for nodes that have a zero size (i.e. community may not be empty, but
   // may have zero size).
   if (this->_cnodes[old_comm] == 0)
   {
-    #ifdef DEBUG
-      cerr << "Adding community " << old_comm << " to empty communities." << endl;
-    #endif
     this->_empty_communities.push_back(old_comm);
-    #ifdef DEBUG
-      cerr << "Added community " << old_comm << " to empty communities." << endl;
-    #endif
   }
 
   if (this->_cnodes[new_comm] == 0)
   {
-    #ifdef DEBUG
-      cerr << "Removing from empty communities (number of empty communities is " << this->_empty_communities.size() << ")." << endl;
-    #endif
     vector<size_t>::reverse_iterator it_comm = this->_empty_communities.rbegin();
     while (it_comm != this->_empty_communities.rend() && *it_comm != new_comm)
     {
-      #ifdef DEBUG
-        cerr << "Empty community " << *it_comm << " != new community " << new_comm << endl;
-      #endif
       it_comm++;
     }
-    #ifdef DEBUG
-      cerr << "Erasing empty community " << *it_comm << endl;
-      if (it_comm == this->_empty_communities.rend())
-        cerr << "ERROR: empty community does not exist." << endl;
-    #endif
     if (it_comm != this->_empty_communities.rend())
       this->_empty_communities.erase( (++it_comm).base() );
   }
 
-  #ifdef DEBUG
-    cerr << "Adding to new community " << new_comm << ", community size: " << this->_csize[new_comm] << endl;
-  #endif
   // Add to new community
   this->_cnodes[new_comm] += 1;
   this->_csize[new_comm] += this->graph->node_size(v);
 
   // Switch outgoing links
-  #ifdef DEBUG
-    cerr << "Added to new community." << endl;
-  #endif
 
   // Use set for incident edges, because self loop appears twice
   igraph_neimode_t modes[2] = {IGRAPH_OUT, IGRAPH_IN};
@@ -645,15 +509,6 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
     vector<size_t> const& neighbour_edges = this->graph->get_neighbour_edges(v, mode);
 
     size_t degree = neighbours.size();
-
-    #ifdef DEBUG
-      if (mode == IGRAPH_OUT)
-        cerr << "\t" << "Looping over outgoing links." << endl;
-      else if (mode == IGRAPH_IN)
-        cerr << "\t" << "Looping over incoming links." << endl;
-      else
-        cerr << "\t" << "Looping over unknown mode." << endl;
-    #endif
 
     for (size_t idx = 0; idx < degree; idx++)
     {
@@ -669,12 +524,6 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
         this->_total_weight_from_comm[old_comm] -= w;
         // Add the weight to the outgoing weights of the new community
         this->_total_weight_from_comm[new_comm] += w;
-        #ifdef DEBUG
-          cerr << "\t" << "Moving link (" << v << "-" << u << ") "
-               << "outgoing weight " << w
-               << " from " << old_comm << " to " << new_comm
-               << "." << endl;
-        #endif
       }
       else if (mode == IGRAPH_IN)
       {
@@ -682,12 +531,6 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
         this->_total_weight_to_comm[old_comm] -= w;
         // Add the weight to the outgoing weights of the new community
         this->_total_weight_to_comm[new_comm] += w;
-        #ifdef DEBUG
-          cerr << "\t" << "Moving link (" << v << "-" << u << ") "
-               << "incoming weight " << w
-               << " from " << old_comm << " to " << new_comm
-               << "." << endl;
-        #endif
       }
       else
         throw Exception("Incorrect mode for updating the admin.");
@@ -699,11 +542,6 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
         // Remove the internal weight
         this->_total_weight_in_comm[old_comm] -= int_weight;
         this->_total_weight_in_all_comms -= int_weight;
-        #ifdef DEBUG
-          cerr << "\t" << "From link (" << v << "-" << u << ") "
-               << "remove internal weight " << int_weight
-               << " from " << old_comm << "." << endl;
-        #endif
       }
       // If it is an internal edge in the new community
       // i.e. if u is in the new community, or if it is a self loop
@@ -712,27 +550,11 @@ void MutableVertexPartition::move_node(size_t v,size_t new_comm)
         // Add the internal weight
         this->_total_weight_in_comm[new_comm] += int_weight;
         this->_total_weight_in_all_comms += int_weight;
-        #ifdef DEBUG
-          cerr << "\t" << "From link (" << v << "-" << u << ") "
-               << "add internal weight " << int_weight
-               << " to " << new_comm << "." << endl;
-        #endif
       }
     }
   }
-  #ifdef DEBUG
-    // Check this->_total_weight_in_all_comms
-    double check_total_weight_in_all_comms = 0.0;
-    for (size_t c = 0; c < this->n_communities(); c++)
-      check_total_weight_in_all_comms += this->total_weight_in_comm(c);
-    cerr << "Internal _total_weight_in_all_comms=" << this->_total_weight_in_all_comms
-         << ", calculated check_total_weight_in_all_comms=" << check_total_weight_in_all_comms << endl;
-  #endif
   // Update the membership vector
   this->_membership[v] = new_comm;
-  #ifdef DEBUG
-    cerr << "exit MutableVertexPartition::move_node(" << v << ", " << new_comm << ")" << endl << endl;
-  #endif
 }
 
 
@@ -802,9 +624,6 @@ void MutableVertexPartition::cache_neigh_communities(size_t v, igraph_neimode_t 
   // rather than this being called multiple times.
 
   // Weight between vertex and community
-  #ifdef DEBUG
-    cerr << "double MutableVertexPartition::cache_neigh_communities(" << v << ", " << mode << ")." << endl;
-  #endif
   vector<double>* _cached_weight_tofrom_community = NULL;
   vector<size_t>* _cached_neighs_comms = NULL;
   switch (mode)
@@ -841,18 +660,12 @@ void MutableVertexPartition::cache_neigh_communities(size_t v, igraph_neimode_t 
     size_t e = neighbour_edges[idx];
 
     // If it is an edge to the requested community
-    #ifdef DEBUG
-      size_t v_comm = this->_membership[v];
-    #endif
     size_t comm = this->_membership[u];
     // Get the weight of the edge
     double w = this->graph->edge_weight(e);
     // Self loops appear twice here if the graph is undirected, so divide by 2.0 in that case.
     if (u == v && !this->graph->is_directed())
         w /= 2.0;
-    #ifdef DEBUG
-      cerr << "\t" << "Edge (" << v << "-" << u << "), Comm (" << v_comm << "-" << comm << ") weight: " << w << "." << endl;
-    #endif
     (*_cached_weight_tofrom_community)[comm] += w;
     // REMARK: Notice in the rare case of negative weights, being exactly equal
     // for a certain community, that this community may then potentially be added multiple
@@ -861,9 +674,6 @@ void MutableVertexPartition::cache_neigh_communities(size_t v, igraph_neimode_t 
     if ((*_cached_weight_tofrom_community)[comm] != 0)
       _cached_neighs_comms->push_back(comm);
   }
-  #ifdef DEBUG
-    cerr << "exit Graph::cache_neigh_communities(" << v << ", " << mode << ")." << endl;
-  #endif
 }
 
 vector<size_t> const& MutableVertexPartition::get_neigh_comms(size_t v, igraph_neimode_t mode)
@@ -915,4 +725,95 @@ vector<size_t> MutableVertexPartition::get_neigh_comms(size_t v, igraph_neimode_
     }
   }
   return neigh_comms;
+}
+
+ModularityVertexPartition::ModularityVertexPartition(Graph* graph,
+      vector<size_t> const& membership) :
+        MutableVertexPartition(graph,
+        membership)
+{ }
+
+ModularityVertexPartition::ModularityVertexPartition(Graph* graph) :
+        MutableVertexPartition(graph)
+{ }
+
+ModularityVertexPartition::~ModularityVertexPartition()
+{ }
+
+ModularityVertexPartition* ModularityVertexPartition::create(Graph* graph)
+{
+  return new ModularityVertexPartition(graph);
+}
+
+ModularityVertexPartition* ModularityVertexPartition::create(Graph* graph, vector<size_t> const& membership)
+{
+  return new ModularityVertexPartition(graph, membership);
+}
+
+/*****************************************************************************
+  Returns the difference in modularity if we move a node to a new community
+*****************************************************************************/
+double ModularityVertexPartition::diff_move(size_t v, size_t new_comm)
+{
+  size_t old_comm = this->_membership[v];
+  double diff = 0.0;
+  double total_weight = this->graph->total_weight()*(2.0 - this->graph->is_directed());
+  if (total_weight == 0.0)
+    return 0.0;
+  if (new_comm != old_comm)
+  {
+    double w_to_old = this->weight_to_comm(v, old_comm);
+    double w_from_old = this->weight_from_comm(v, old_comm);
+    double w_to_new = this->weight_to_comm(v, new_comm);
+    double w_from_new = this->weight_from_comm(v, new_comm);
+    double k_out = this->graph->strength(v, IGRAPH_OUT);
+    double k_in = this->graph->strength(v, IGRAPH_IN);
+    double self_weight = this->graph->node_self_weight(v);
+    double K_out_old = this->total_weight_from_comm(old_comm);
+    double K_in_old = this->total_weight_to_comm(old_comm);
+    double K_out_new = this->total_weight_from_comm(new_comm) + k_out;
+    double K_in_new = this->total_weight_to_comm(new_comm) + k_in;
+    double diff_old = (w_to_old - k_out*K_in_old/total_weight) + \
+               (w_from_old - k_in*K_out_old/total_weight);
+    double diff_new = (w_to_new + self_weight - k_out*K_in_new/total_weight) + \
+               (w_from_new + self_weight - k_in*K_out_new/total_weight);
+    diff = diff_new - diff_old;
+  }
+  double m;
+  if (this->graph->is_directed())
+    m = this->graph->total_weight();
+  else
+    m = 2*this->graph->total_weight();
+  return diff/m;
+}
+
+
+/*****************************************************************************
+  Give the modularity of the partition.
+
+  We here use the unscaled version of modularity, in other words, we don"t
+  normalise by the number of edges.
+******************************************************************************/
+double ModularityVertexPartition::quality()
+{
+  double mod = 0.0;
+
+  double m;
+  if (this->graph->is_directed())
+    m = this->graph->total_weight();
+  else
+    m = 2*this->graph->total_weight();
+
+  if (m == 0)
+    return 0.0;
+
+  for (size_t c = 0; c < this->n_communities(); c++)
+  {
+    double w = this->total_weight_in_comm(c);
+    double w_out = this->total_weight_from_comm(c);
+    double w_in = this->total_weight_to_comm(c);
+    mod += w - w_out*w_in/((this->graph->is_directed() ? 1.0 : 4.0)*this->graph->total_weight());
+  }
+  double q = (2.0 - this->graph->is_directed())*mod;
+  return q/m;
 }

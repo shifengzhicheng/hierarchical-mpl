@@ -1,4 +1,4 @@
-#include "GraphHelper.h"
+#include "GraphHelperForLeidenHelper.h"
 
 #ifdef DEBUG
   using std::cerr;
@@ -67,7 +67,7 @@ double KLL(double q, double p)
   return KL;
 }
 
-Graph::Graph(igraph_t* graph,
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph,
   vector<double> const& edge_weights,
   vector<double> const& node_sizes,
   vector<double> const& node_self_weights, int correct_self_loops)
@@ -93,7 +93,7 @@ Graph::Graph(igraph_t* graph,
   this->init_admin();
 }
 
-Graph::Graph(igraph_t* graph,
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph,
   vector<double> const& edge_weights,
   vector<double> const& node_sizes,
   vector<double> const& node_self_weights)
@@ -117,7 +117,7 @@ Graph::Graph(igraph_t* graph,
   this->init_admin();
 }
 
-Graph::Graph(igraph_t* graph,
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph,
   vector<double> const& edge_weights,
   vector<double> const& node_sizes, int correct_self_loops)
 {
@@ -139,7 +139,7 @@ Graph::Graph(igraph_t* graph,
   this->set_self_weights();
 }
 
-Graph::Graph(igraph_t* graph,
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph,
   vector<double> const& edge_weights,
   vector<double> const& node_sizes)
 {
@@ -161,9 +161,9 @@ Graph::Graph(igraph_t* graph,
   this->set_self_weights();
 }
 
-Graph* Graph::GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights, int correct_self_loops)
+GraphHelperForLeiden* GraphHelperForLeiden::GraphHelperForLeidenFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights, int correct_self_loops)
 {
-  Graph* g = new Graph(graph, correct_self_loops);
+  GraphHelperForLeiden* g = new GraphHelperForLeiden(graph, correct_self_loops);
 
   if (edge_weights.size() != g->ecount())
     throw Exception("Edge weights vector inconsistent length with the edge count of the graph.");
@@ -177,9 +177,9 @@ Graph* Graph::GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_w
   return g;
 }
 
-Graph* Graph::GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights)
+GraphHelperForLeiden* GraphHelperForLeiden::GraphHelperForLeidenFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights)
 {
-  Graph* g = new Graph(graph);
+  GraphHelperForLeiden* g = new GraphHelperForLeiden(graph);
 
   if (edge_weights.size() != g->ecount())
     throw Exception("Edge weights vector inconsistent length with the edge count of the graph.");
@@ -193,9 +193,9 @@ Graph* Graph::GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_w
   return g;
 }
 
-Graph* Graph::GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes, int correct_self_loops)
+GraphHelperForLeiden* GraphHelperForLeiden::GraphHelperForLeidenFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes, int correct_self_loops)
 {
-  Graph* g = new Graph(graph, correct_self_loops);
+  GraphHelperForLeiden* g = new GraphHelperForLeiden(graph, correct_self_loops);
 
   if (node_sizes.size() != g->vcount())
     throw Exception("Node size vector inconsistent length with the vertex count of the graph.");
@@ -210,9 +210,9 @@ Graph* Graph::GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_siz
   return g;
 }
 
-Graph* Graph::GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes)
+GraphHelperForLeiden* GraphHelperForLeiden::GraphHelperForLeidenFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes)
 {
-  Graph* g = new Graph(graph);
+  GraphHelperForLeiden* g = new GraphHelperForLeiden(graph);
 
   g->_graph = graph;
   g->_remove_graph = false;
@@ -233,7 +233,7 @@ Graph* Graph::GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_siz
   return g;
 }
 
-Graph::Graph(igraph_t* graph, int correct_self_loops)
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph, int correct_self_loops)
 {
   this->_graph = graph;
   this->_remove_graph = false;
@@ -245,7 +245,7 @@ Graph::Graph(igraph_t* graph, int correct_self_loops)
   this->set_self_weights();
 }
 
-Graph::Graph(igraph_t* graph)
+GraphHelperForLeiden::GraphHelperForLeiden(igraph_t* graph)
 {
   this->_graph = graph;
   this->_remove_graph = false;
@@ -259,7 +259,7 @@ Graph::Graph(igraph_t* graph)
   this->set_self_weights();
 }
 
-Graph::~Graph()
+GraphHelperForLeiden::~GraphHelperForLeiden()
 {
   if (this->_remove_graph)
   {
@@ -269,19 +269,19 @@ Graph::~Graph()
   igraph_vector_int_destroy(&this->_temp_igraph_vector);
 }
 
-int Graph::has_self_loops()
+int GraphHelperForLeiden::has_self_loops()
 {
   igraph_bool_t has_self_loops;  
   igraph_has_loop(this->_graph, &has_self_loops);
   return has_self_loops;
 }
 
-double Graph::possible_edges()
+double GraphHelperForLeiden::possible_edges()
 {
   return this->possible_edges(this->vcount());
 }
 
-double Graph::possible_edges(double n)
+double GraphHelperForLeiden::possible_edges(double n)
 {
   double possible_edges = n*(n-1);
   if (!this->is_directed())
@@ -292,13 +292,13 @@ double Graph::possible_edges(double n)
   return possible_edges;
 }
 
-void Graph::set_defaults()
+void GraphHelperForLeiden::set_defaults()
 {
   this->set_default_edge_weight();
   this->set_default_node_size();
 }
 
-void Graph::set_default_edge_weight()
+void GraphHelperForLeiden::set_default_edge_weight()
 {
   size_t m = this->ecount();
 
@@ -308,7 +308,7 @@ void Graph::set_default_edge_weight()
   this->_is_weighted = false;
 }
 
-void Graph::set_default_node_size()
+void GraphHelperForLeiden::set_default_node_size()
 {
   size_t n = this->vcount();
 
@@ -317,7 +317,7 @@ void Graph::set_default_node_size()
   fill(this->_node_sizes.begin(), this->_node_sizes.end(), 1);
 }
 
-void Graph::set_self_weights()
+void GraphHelperForLeiden::set_self_weights()
 {
   size_t n = this->vcount();
 
@@ -343,7 +343,7 @@ void Graph::set_self_weights()
   }
 }
 
-void Graph::init_admin()
+void GraphHelperForLeiden::init_admin()
 {
 
   size_t m = this->ecount();
@@ -430,10 +430,10 @@ void Graph::init_admin()
   this->_current_node_cache_neigh_all = n + 1;
 }
 
-void Graph::cache_neighbour_edges(size_t v, igraph_neimode_t mode)
+void GraphHelperForLeiden::cache_neighbour_edges(size_t v, igraph_neimode_t mode)
 {
   #ifdef DEBUG
-    cerr << "void Graph::cache_neighbour_edges(" << v << ", " << mode << ");" << endl;
+    cerr << "void GraphHelperForLeiden::cache_neighbour_edges(" << v << ", " << mode << ");" << endl;
   #endif
   size_t degree = this->degree(v, mode);
   #ifdef DEBUG
@@ -466,11 +466,11 @@ void Graph::cache_neighbour_edges(size_t v, igraph_neimode_t mode)
   #endif
 
   #ifdef DEBUG
-    cerr << "exit void Graph::cache_neighbour_edges(" << v << ", " << mode << ");" << endl;
+    cerr << "exit void GraphHelperForLeiden::cache_neighbour_edges(" << v << ", " << mode << ");" << endl;
   #endif
 }
 
-vector<size_t> const& Graph::get_neighbour_edges(size_t v, igraph_neimode_t mode)
+vector<size_t> const& GraphHelperForLeiden::get_neighbour_edges(size_t v, igraph_neimode_t mode)
 {
   if (!this->is_directed())
     mode = IGRAPH_ALL; // igraph ignores mode for undirected graphs
@@ -502,10 +502,10 @@ vector<size_t> const& Graph::get_neighbour_edges(size_t v, igraph_neimode_t mode
   throw Exception("Incorrect model for getting neighbour edges.");
 }
 
-void Graph::cache_neighbours(size_t v, igraph_neimode_t mode)
+void GraphHelperForLeiden::cache_neighbours(size_t v, igraph_neimode_t mode)
 {
   #ifdef DEBUG
-    cerr << "void Graph::cache_neighbours(" << v << ", " << mode << ");" << endl;
+    cerr << "void GraphHelperForLeiden::cache_neighbours(" << v << ", " << mode << ");" << endl;
   #endif
   size_t degree = this->degree(v, mode);
   #ifdef DEBUG
@@ -539,11 +539,11 @@ void Graph::cache_neighbours(size_t v, igraph_neimode_t mode)
   #endif
 
   #ifdef DEBUG
-    cerr << "exit void Graph::cache_neighbours(" << v << ", " << mode << ");" << endl;
+    cerr << "exit void GraphHelperForLeiden::cache_neighbours(" << v << ", " << mode << ");" << endl;
   #endif
 }
 
-vector< size_t > const& Graph::get_neighbours(size_t v, igraph_neimode_t mode)
+vector< size_t > const& GraphHelperForLeiden::get_neighbours(size_t v, igraph_neimode_t mode)
 {
   if (!this->is_directed())
     mode = IGRAPH_ALL; // igraph ignores mode for undirected graphs
@@ -587,7 +587,7 @@ vector< size_t > const& Graph::get_neighbours(size_t v, igraph_neimode_t mode)
 /********************************************************************************
  * This should return a random neighbour in O(1)
  ********************************************************************************/
-size_t Graph::get_random_neighbour(size_t v, igraph_neimode_t mode, igraph_rng_t* rng)
+size_t GraphHelperForLeiden::get_random_neighbour(size_t v, igraph_neimode_t mode, igraph_rng_t* rng)
 {
   size_t node=v;
   size_t rand_neigh = -1;
@@ -667,10 +667,10 @@ size_t Graph::get_random_neighbour(size_t v, igraph_neimode_t mode, igraph_rng_t
   of a node in the new graph is simply the size of the community in the old
   graph.
 *****************************************************************************/
-Graph* Graph::collapse_graph(MutableVertexPartition* partition)
+GraphHelperForLeiden* GraphHelperForLeiden::collapse_graph(MutableVertexPartition* partition)
 {
   #ifdef DEBUG
-    cerr << "Graph* Graph::collapse_graph(vector<size_t> membership)" << endl;
+    cerr << "GraphHelperForLeiden* GraphHelperForLeiden::collapse_graph(vector<size_t> membership)" << endl;
   #endif
 
   #ifdef DEBUG
@@ -743,10 +743,10 @@ Graph* Graph::collapse_graph(MutableVertexPartition* partition)
   for (size_t c = 0; c < partition->n_communities(); c++)
     csizes[c] = partition->csize(c);
 
-  Graph* G = new Graph(graph, collapsed_weights, csizes, this->_correct_self_loops);
+  GraphHelperForLeiden* G = new GraphHelperForLeiden(graph, collapsed_weights, csizes, this->_correct_self_loops);
   G->_remove_graph = true;
   #ifdef DEBUG
-    cerr << "exit Graph::collapse_graph(vector<size_t> membership)" << endl << endl;
+    cerr << "exit GraphHelperForLeiden::collapse_graph(vector<size_t> membership)" << endl << endl;
   #endif
   return G;
 }

@@ -1,7 +1,7 @@
 #include <igraph/igraph.h>
 #include <libleidenalg/GraphHelper.h>
 #include <libleidenalg/Optimiser.h>
-#include <libleidenalg/CPMVertexPartition.h>
+#include <libleidenalg/ModularityVertexPartition.h>
 #include <stdio.h>
 
 using std::cout;

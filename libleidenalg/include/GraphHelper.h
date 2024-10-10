@@ -3,8 +3,6 @@
 
 #include <igraph/igraph.h>
 
-#include "libleidenalg_export.h"
-
 #include <vector>
 #include <set>
 #include <exception>
@@ -66,38 +64,38 @@ inline size_t get_random_int(size_t from, size_t to, igraph_rng_t* rng)
 
 void shuffle(vector<size_t>& v, igraph_rng_t* rng);
 
-class LIBLEIDENALG_EXPORT Graph
+class LIBLEIDENALG_EXPORT GraphHelperForLeiden
 {
   public:
-    Graph(igraph_t* graph,
+    GraphHelperForLeiden(igraph_t* graph,
       vector<double> const& edge_weights,
       vector<double> const& node_sizes,
       vector<double> const& node_self_weights, int correct_self_loops);
-    Graph(igraph_t* graph,
+    GraphHelperForLeiden(igraph_t* graph,
       vector<double> const& edge_weights,
       vector<double> const& node_sizes,
       vector<double> const& node_self_weights);
-    Graph(igraph_t* graph,
+    GraphHelperForLeiden(igraph_t* graph,
       vector<double> const& edge_weights,
       vector<double> const& node_sizes, int correct_self_loops);
-    Graph(igraph_t* graph,
+    GraphHelperForLeiden(igraph_t* graph,
       vector<double> const& edge_weights,
       vector<double> const& node_sizes);
-    Graph(igraph_t* graph, int correct_self_loops);
-    Graph(igraph_t* graph);
-    Graph();
-    ~Graph();
+    GraphHelperForLeiden(igraph_t* graph, int correct_self_loops);
+    GraphHelperForLeiden(igraph_t* graph);
+    GraphHelperForLeiden();
+    ~GraphHelperForLeiden();
 
-    static Graph* GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights, int correct_self_loops);
-    static Graph* GraphFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights);
-    static Graph* GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes, int correct_self_loops);
-    static Graph* GraphFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes);
+    static GraphHelperForLeiden* GraphHelperForLeidenFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights, int correct_self_loops);
+    static GraphHelperForLeiden* GraphHelperForLeidenFromEdgeWeights(igraph_t* graph, vector<double> const& edge_weights);
+    static GraphHelperForLeiden* GraphHelperForLeidenFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes, int correct_self_loops);
+    static GraphHelperForLeiden* GraphHelperForLeidenFromNodeSizes(igraph_t* graph, vector<double> const& node_sizes);
 
     int has_self_loops();
     double possible_edges();
     double possible_edges(double n);
 
-    Graph* collapse_graph(MutableVertexPartition* partition);
+    GraphHelperForLeiden* collapse_graph(MutableVertexPartition* partition);
 
     vector<size_t> const& get_neighbour_edges(size_t v, igraph_neimode_t mode);
     vector<size_t> const& get_neighbours(size_t v, igraph_neimode_t mode);
