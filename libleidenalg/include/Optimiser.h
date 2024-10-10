@@ -28,8 +28,8 @@ class LIBLEIDENALG_EXPORT Optimiser
     double optimise_partition(MutableVertexPartition* partition);
     double optimise_partition(MutableVertexPartition* partition, vector<bool> const& is_membership_fixed);
     double optimise_partition(MutableVertexPartition* partition, vector<bool> const& is_membership_fixed, size_t max_comm_size);
-    template <class T> T* find_partition(Graph* graph);
-    template <class T> T* find_partition(Graph* graph, double resolution_parameter);
+    template <class T> T* find_partition(GraphForLeidenAlgorithm* graph);
+    template <class T> T* find_partition(GraphForLeidenAlgorithm* graph, double resolution_parameter);
 
     // The multiplex functions that simultaneously optimise multiple graphs and partitions (i.e. methods)
     // Each node will be in the same community in all graphs, and the graphs are expected to have identical nodes
@@ -97,14 +97,14 @@ class LIBLEIDENALG_EXPORT Optimiser
     igraph_rng_t rng;
 };
 
-template <class T> T* Optimiser::find_partition(Graph* graph)
+template <class T> T* Optimiser::find_partition(GraphForLeidenAlgorithm* graph)
 {
   T* partition = new T(graph);
   this->optimise_partition(partition);
   return partition;
 }
 
-template <class T> T* Optimiser::find_partition(Graph* graph, double resolution_parameter)
+template <class T> T* Optimiser::find_partition(GraphForLeidenAlgorithm* graph, double resolution_parameter)
 {
   T* partition = new T(graph, resolution_parameter);
   this->optimise_partition(partition);

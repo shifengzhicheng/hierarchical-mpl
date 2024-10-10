@@ -45,11 +45,11 @@ order to optimise the quality function.
 class LIBLEIDENALG_EXPORT MutableVertexPartition
 {
   public:
-    MutableVertexPartition(Graph* graph,
+    MutableVertexPartition(GraphForLeidenAlgorithm* graph,
         vector<size_t> const& membership);
-    MutableVertexPartition(Graph* graph);
-    virtual MutableVertexPartition* create(Graph* graph);
-    virtual MutableVertexPartition* create(Graph* graph, vector<size_t> const& membership);
+    MutableVertexPartition(GraphForLeidenAlgorithm* graph);
+    virtual MutableVertexPartition* create(GraphForLeidenAlgorithm* graph);
+    virtual MutableVertexPartition* create(GraphForLeidenAlgorithm* graph, vector<size_t> const& membership);
 
     virtual ~MutableVertexPartition();
 
@@ -72,7 +72,7 @@ class LIBLEIDENALG_EXPORT MutableVertexPartition
       throw Exception("Function not implemented. This should be implemented in a derived class, since the base class does not implement a specific method.");
     };
 
-    inline Graph* get_graph() { return this->graph; };
+    inline GraphForLeidenAlgorithm* get_graph() { return this->graph; };
 
     void renumber_communities();
     void renumber_communities(vector<size_t> const& fixed_nodes, vector<size_t> const& fixed_membership);
@@ -140,7 +140,7 @@ class LIBLEIDENALG_EXPORT MutableVertexPartition
 
     vector<size_t> _membership; // Membership vector, i.e. \sigma_i = c means that node i is in community c
 
-    Graph* graph;
+    GraphForLeidenAlgorithm* graph;
 
     // Community size
     vector<double> _csize;
@@ -183,12 +183,12 @@ class LIBLEIDENALG_EXPORT MutableVertexPartition
 class ModularityVertexPartition : public MutableVertexPartition
 {
   public:
-    ModularityVertexPartition(Graph* graph,
+    ModularityVertexPartition(GraphForLeidenAlgorithm* graph,
         vector<size_t> const& membership);
-    ModularityVertexPartition(Graph* graph);
+    ModularityVertexPartition(GraphForLeidenAlgorithm* graph);
     virtual ~ModularityVertexPartition();
-    virtual ModularityVertexPartition* create(Graph* graph);
-    virtual ModularityVertexPartition* create(Graph* graph, vector<size_t> const& membership);
+    virtual ModularityVertexPartition* create(GraphForLeidenAlgorithm* graph);
+    virtual ModularityVertexPartition* create(GraphForLeidenAlgorithm* graph, vector<size_t> const& membership);
 
     virtual double diff_move(size_t v, size_t new_comm);
     virtual double quality();

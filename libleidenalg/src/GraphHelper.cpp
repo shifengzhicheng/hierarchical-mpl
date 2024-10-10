@@ -669,15 +669,6 @@ size_t GraphHelperForLeiden::get_random_neighbour(size_t v, igraph_neimode_t mod
 *****************************************************************************/
 GraphHelperForLeiden* GraphHelperForLeiden::collapse_graph(MutableVertexPartition* partition)
 {
-  #ifdef DEBUG
-    cerr << "GraphHelperForLeiden* GraphHelperForLeiden::collapse_graph(vector<size_t> membership)" << endl;
-  #endif
-
-  #ifdef DEBUG
-    cerr << "Current graph has " << this->vcount() << " nodes and " << this->ecount() << " edges." << endl;
-    cerr << "Collapsing to graph with " << partition->n_communities() << " nodes." << endl;
-  #endif
-
   size_t n_collapsed = partition->n_communities();
   vector<vector<size_t> > community_memberships = partition->get_communities();
 
@@ -745,8 +736,5 @@ GraphHelperForLeiden* GraphHelperForLeiden::collapse_graph(MutableVertexPartitio
 
   GraphHelperForLeiden* G = new GraphHelperForLeiden(graph, collapsed_weights, csizes, this->_correct_self_loops);
   G->_remove_graph = true;
-  #ifdef DEBUG
-    cerr << "exit GraphHelperForLeiden::collapse_graph(vector<size_t> membership)" << endl << endl;
-  #endif
   return G;
 }

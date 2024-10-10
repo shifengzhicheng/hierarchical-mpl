@@ -31,11 +31,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
 #include "leidenClustering.h"
+
+#include "ModularityVertexPartition.h"
+#include "Optimizer.h"
 #include "db_sta/dbNetwork.hh"
-#include "object.h"
+#include "leidenInterface.h"
 #include "par/PartitionMgr.h"
 #include "sta/Liberty.hh"
-#include "leidenInterface.h"
 
 namespace odb {
 class dbBlock;
@@ -58,12 +60,23 @@ namespace mpl2 {
  * @param block Pointer to the block.
  * @param logger Pointer to the logger.
  */
-leidenClustering::leidenClustering(odb::dbDatabase* db, odb::dbBlock* block, utl::Logger* logger)
+leidenClustering::leidenClustering(odb::dbDatabase* db,
+                                   odb::dbBlock* block,
+                                   utl::Logger* logger)
     : db_(db),
       block_(block),
-      logger_(logger)
+      logger_(logger),
+      graph_(nullptr),
+      hypergraph_(nullptr)
 {
 }
+
+leidenClustering::~leidenClustering()
+{
+  delete graph_;
+  delete hypergraph_;
+}
+
 /**
  * @brief Initializes the Leiden Clustering algorithm.
  *
@@ -86,6 +99,7 @@ void leidenClustering::run()
   init();
   createHypergraph();
   createGraph();
+  runLeidenClustering();
 }
 
 /**
@@ -99,34 +113,42 @@ void leidenClustering::run()
 void leidenClustering::createGraph()
 {
   /**
-  * @brief Creates a graph from the hypergraph.
-  * 1. Initializes an empty graph.
-  * 2. Iterates over each hyperedge in the hypergraph.
-  * 3. For each hyperedge, iterates over each pair of vertices.
-  * 4. Adds an edge between each pair of vertices.
-  */
-  std::vector<std::vector<int>> edges(hypergraph_.num_vertices_);
-  std::vector<std::vector<float>> edge_weights(hypergraph_.num_vertices_);
-  std::vector<float> vertex_weights = hypergraph_.vertex_weights_;
-  logger_->report("Creating Graph for leiden algorithm. hypergraph_.numvertices_: {}", hypergraph_.num_vertices_);
-  for (size_t i = 0; i < hypergraph_.hyperedges_.size(); ++i) {
-    const std::vector<int>& hyperedge = hypergraph_.hyperedges_[i];
-    float hyperedge_weight = hypergraph_.hyperedge_weights_[i];
-    float edge_weight = hyperedge_weight / (hyperedge.size() - 1);
+   * @brief Creates a graph from the hypergraph.
+   * 1. Initializes an empty graph using GraphForLeidenAlgorithm.
+   * 2. Iterates over each hyperedge in the hypergraph.
+   * 3. For each hyperedge, iterates over each pair of vertices.
+   * 4. Adds an edge between each pair of vertices with the calculated weight.
+   */
+
+  // Initialize the graph with the number of vertices
+  graph_ = new GraphForLeidenAlgorithm(hypergraph_->num_vertices_);
+
+  // Vertex weights are directly copied from the hypergraph
+  graph_->vertex_weights_ = hypergraph_->vertex_weights_;
+
+  logger_->report(
+      "Creating Graph for Leiden algorithm. hypergraph_->numvertices_: {}",
+      hypergraph_->num_vertices_);
+
+  // Iterate over all hyperedges
+  for (size_t i = 0; i < hypergraph_->hyperedges_.size(); ++i) {
+    const std::vector<int>& hyperedge = hypergraph_->hyperedges_[i];
+    float hyperedge_weight = hypergraph_->hyperedge_weights_[i];
+
+    // Compute the weight of each pair of vertices in the hyperedge
+    float edge_weight = hyperedge_weight * (hyperedge.size() - 1);
+
+    // For each pair of vertices (j, k) in the hyperedge, add an edge
     for (size_t j = 0; j < hyperedge.size(); ++j) {
       for (size_t k = j + 1; k < hyperedge.size(); ++k) {
-        edges[j].push_back(k);
-        edges[k].push_back(j);
-        edge_weights[j].push_back(edge_weight);
-        edge_weights[k].push_back(edge_weight);
+        // Add an edge between vertex j and vertex k with the calculated weight
+        graph_->addEdge(hyperedge[j], hyperedge[k], edge_weight);
       }
     }
   }
-  graph_.edges_ = std::move(edges);
-  graph_.edge_weights_ = std::move(edge_weights);
-  graph_.vertex_weights_ = std::move(vertex_weights);
-  graph_.num_vertices_ = hypergraph_.num_vertices_;
-  logger_->report("Creating Graph Finished. edges_.size(): {}", graph_.edges_.size());
+  logger_->report("Creating Graph Finished.");
+  graph_->calculateTotalweight();
+  logger_->report("Calculate total edge weight finished.");
 }
 
 bool leidenClustering::isIgnoredMaster(odb::dbMaster* master)
@@ -161,7 +183,9 @@ void leidenClustering::createHypergraph()
 {
   std::vector<std::vector<int>> hyperedges;
   size_t num_vertices = 0;
-  logger_->report("Creating Hypergraph for leiden algorithm. block_->getNets().size(): {}", block_->getNets().size());
+  logger_->report(
+      "Creating Hypergraph for leiden algorithm. block_->getNets().size(): {}",
+      block_->getNets().size());
 
   for (odb::dbNet* net : block_->getNets()) {
     if (net->getSigType().isSupply()) {
@@ -183,7 +207,8 @@ void leidenClustering::createHypergraph()
       }
 
       int vertex_id = -1;
-      odb::dbIntProperty* int_prop = odb::dbIntProperty::find(inst, "vertex_id");
+      odb::dbIntProperty* int_prop
+          = odb::dbIntProperty::find(inst, "vertex_id");
       if (int_prop) {
         vertex_id = int_prop->getValue();
       } else {
@@ -208,14 +233,33 @@ void leidenClustering::createHypergraph()
       std::vector<int> hyperedge;
       hyperedge.insert(hyperedge.end(), loads_id.begin(), loads_id.end());
       hyperedges.push_back(hyperedge);
-      // logger_->report("Added hyperedge for net: {} with vertices: {}", net->getName(), fmt::join(hyperedge, ", "));
+      // logger_->report("Added hyperedge for net: {} with vertices: {}",
+      // net->getName(), fmt::join(hyperedge, ", "));
     }
   }
-  hypergraph_.hyperedges_ = std::move(hyperedges);
-  hypergraph_.hyperedge_weights_.resize(hypergraph_.hyperedges_.size(), 1.0);
-  hypergraph_.num_vertices_ = num_vertices;
-  hypergraph_.vertex_weights_.resize(num_vertices, 1.0);
-  logger_->report("Finished creating hypergraph with {} hyperedges, {} vertices number", hypergraph_.hyperedges_.size(), num_vertices);
+  hypergraph_ = new HyperGraphForLeidenAlgorithm();
+  hypergraph_->hyperedges_ = std::move(hyperedges);
+  hypergraph_->hyperedge_weights_.resize(hypergraph_->hyperedges_.size(), 1.0);
+  hypergraph_->num_vertices_ = num_vertices;
+  hypergraph_->vertex_weights_.resize(num_vertices, 1.0);
+  logger_->report(
+      "Finished creating hypergraph with {} hyperedges, {} vertices number",
+      hypergraph_->hyperedges_.size(),
+      num_vertices);
+}
+
+void leidenClustering::runLeidenClustering()
+{
+  // Initialize the partition using the Modularity partition strategy
+  ModularityVertexPartition part(graph_);
+
+  // Initialize the optimizer
+  Optimiser optimiser;
+  logger_->report("Start Running Leiden Clustering");
+  // Perform optimization on the partition
+  optimiser.optimise_partition(&part);
+
+  logger_->report("Finished running Leiden Clustering");
 }
 
 }  // namespace mpl2

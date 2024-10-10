@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "db_sta/dbNetwork.hh"
+#include "leidenInterface.h"
 #include "odb/db.h"
 #include "sta/Liberty.hh"
 
@@ -52,70 +53,37 @@ class dbNetwork;
 
 namespace mpl2 {
 
-struct InstMapForLeidenAlgorithm
-{
-  std::unordered_map<odb::dbInst*, int> inst_to_vertex_;
-  std::unordered_map<int, odb::dbInst*> vertex_to_inst_;
-};
-
-/**
- * @brief Hypergraph hyperedges_ stands for the adjacency list of the hypergraph.
- * hyperedge_weights_ stands for the weights of the hyperedges.
- * vertex_weights_ stands for the weights of the vertices.
- */
-struct HyperGraphForLeidenAlgorithm
-{
-  std::vector<std::vector<int>> hyperedges_;
-  std::vector<float> hyperedge_weights_;
-  std::vector<float> vertex_weights_;
-  size_t num_vertices_;
-};
-
-/**
- * @brief Graph edges_ stands for the adjacency list of the graph.
- * edge_weights_ stands for the weights of the edges.
- * vertex_weights_ stands for the weights of the vertices.
- */
-struct GraphForLeidenAlgorithm
-{
-  std::vector<std::vector<int>> edges_;
-  std::vector<std::vector<float>> edge_weights_;
-  std::vector<float> vertex_weights_;
-  size_t num_vertices_;
-};
-
-struct LeidenClusteringResult
-{
-  std::vector<std::vector<int>> clusters_;
-  int cluster_sizes_;
-};
+class GraphForLeidenAlgorithm;
+class HyperGraphForLeidenAlgorithm;
 
 class leidenClustering
 {
  public:
+  ~leidenClustering();
   leidenClustering(odb::dbDatabase* db,
                    odb::dbBlock* block,
                    utl::Logger* logger);
 
-/**
- * @brief Executes the Leiden clustering algorithm.
- *
- * This function initiates and runs the Leiden clustering algorithm, which is 
- * used for detecting communities in large networks. The algorithm optimizes 
- * modularity to find the best partitioning of the 
- * network.
- */
-  void run();
- private:
   /**
-   * @brief Pointer to the database block.
+   * @brief Executes the Leiden clustering algorithm.
+   *
+   * This function initiates and runs the Leiden clustering algorithm, which is
+   * used for detecting communities in large networks. The algorithm optimizes
+   * modularity to find the best partitioning of the
+   * network.
    */
-  odb::dbBlock* block_;
+  void run();
 
+ private:
   /**
    * @brief Pointer to the database.
    */
   odb::dbDatabase* db_;
+
+  /**
+   * @brief Pointer to the database block.
+   */
+  odb::dbBlock* block_;
 
   /**
    * @brief Logger for logging messages.
@@ -123,19 +91,14 @@ class leidenClustering
   utl::Logger* logger_;
 
   /**
-   * @brief Hypergraph representation for the Leiden algorithm.
-   */
-  HyperGraphForLeidenAlgorithm hypergraph_;
-
-  /**
    * @brief Graph representation for the Leiden algorithm.
    */
-  GraphForLeidenAlgorithm graph_;
+  GraphForLeidenAlgorithm* graph_;
 
   /**
-   * @brief Mapping between instances and vertices for the Leiden algorithm.
+   * @brief Hypergraph representation for the Leiden algorithm.
    */
-  InstMapForLeidenAlgorithm vertices_maps_;
+  HyperGraphForLeidenAlgorithm* hypergraph_;
 
   /**
    * @brief Initializes the clustering algorithm.
@@ -159,7 +122,7 @@ class leidenClustering
 
   /**
    * @brief Checks if a master should be ignored.
-   * 
+   *
    * @param master The master to check.
    * @return True if the master should be ignored, false otherwise.
    */
