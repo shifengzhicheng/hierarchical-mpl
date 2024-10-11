@@ -13,6 +13,21 @@
         RAND_NEIGH_COMM -- Consider a random community among the neighbours
                            for improvement.
 ****************************************************************************/
+/**
+ * @brief Constructs an Optimiser object with default settings.
+ * 
+ * This constructor initializes the Optimiser with the following default values:
+ * - consider_comms: ALL_NEIGH_COMMS
+ * - optimise_routine: MOVE_NODES
+ * - refine_consider_comms: ALL_NEIGH_COMMS
+ * - refine_routine: MERGE_NODES
+ * - refine_partition: true
+ * - consider_empty_community: true
+ * - max_comm_size: 0
+ * 
+ * Additionally, it initializes the random number generator (RNG) with the 
+ * Mersenne Twister 19937 algorithm and seeds it with the current time.
+ */
 Optimiser::Optimiser()
 {
   this->consider_comms = Optimiser::ALL_NEIGH_COMMS;

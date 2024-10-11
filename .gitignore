@@ -31,6 +31,8 @@
 *.out
 *.app
 
+.vscode
+
 # large test cases
 test/BP/*
 test/SW/*
