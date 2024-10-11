@@ -43,6 +43,29 @@ namespace mpl2 {
 Create a new vertex partition.
 *****************************************************************************/
 
+/****************************************************************************
+  Create a new vertex partition.
+
+  Parameters:
+    graph            -- The igraph.GraphForLeidenAlgorithm on which this partition is defined.
+    membership=None  -- The membership std::vector of this partition, i.e. an
+                        community number for each node. So membership[i] = c
+                        implies that node i is in community c. If None, it is
+                        initialised with each node in its own community.
+    weight_attr=None -- What edge attribute should be used as a weight for the
+                        edges? If None, the weight defaults to 1.
+    size_attr=None   -- What node attribute should be used for keeping track
+                        of the size of the node? In some methods (e.g. CPM or
+                        Significance), we need to keep track of the total
+                        size of the community. So when we aggregate/collapse
+                        the graph, we should know how many nodes were in a
+                        community. If None, the size of a node defaults to 1.
+    self_weight_attr=None
+                     -- What node attribute should be used for the self
+                        weight? If None, the self_weight is
+                        recalculated each time."""
+*****************************************************************************/
+
 ModularityVertexPartition::ModularityVertexPartition(
     GraphForLeidenAlgorithm* graph,
     std::vector<size_t> const& membership)
@@ -61,7 +84,7 @@ ModularityVertexPartition::ModularityVertexPartition(
 {
   this->destructor_delete_graph = false;
   this->graph_ = graph;
-  this->_membership.resize(graph->numVertices());
+  this->_membership = range(graph->numVertices());
   this->init_admin();
 }
 

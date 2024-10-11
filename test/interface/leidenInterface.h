@@ -36,6 +36,7 @@
 #include <exception>
 #include <limits>
 #include <map>
+#include <random>
 #include <vector>
 
 namespace mpl2 {
@@ -45,6 +46,8 @@ class ModularityVertexPartition;
 std::vector<size_t> range(size_t n);
 
 bool orderCSize(const size_t* A, const size_t* B);
+
+void shuffle(std::vector<size_t>& v);
 
 class Exception : public std::exception
 {

@@ -59,6 +59,22 @@ bool orderCSize(const size_t* A, const size_t* B)
     return A[1] > B[1];
 }
 
+void shuffle(std::vector<size_t>& v)
+{
+  std::random_device rd;
+  std::mt19937 rng(rd());
+  size_t n = v.size();
+  if (n > 0)
+  {
+    for (size_t idx = n - 1; idx > 0; idx--)
+    {
+      std::uniform_int_distribution<size_t> dist(0, idx);
+      size_t rand_idx = dist(rng);
+      std::swap(v[idx], v[rand_idx]);
+    }
+  }
+}
+
 /****************************************************************************
   Creates a graph with communities as node and links as weights between
   communities.

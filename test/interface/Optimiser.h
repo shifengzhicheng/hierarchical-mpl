@@ -126,6 +126,6 @@ class Optimiser
  protected:
  private:
   void print_settings();
-};
+};;
 
 }  // namespace mpl2
