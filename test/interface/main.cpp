@@ -47,5 +47,7 @@ int main()
     std::cout << "Node\tCommunity" << std::endl;
     for (int i = 0; i < graph_.numVertices(); i++)
         std::cout << i << "\t" << part.membership(i) << std::endl;
+    graph_.writeGraph("graph.txt");
+    part.writePartition("partition.txt");
     return 0;
 }

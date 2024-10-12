@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
-
+#include <fstream>
 
 namespace mpl2 {
 /****************************************************************************
@@ -639,6 +639,19 @@ std::vector<size_t> ModularityVertexPartition::get_neigh_comms(
     }
   }
   return neigh_comms;
+}
+
+void ModularityVertexPartition::writePartition(const std::string &filename) const
+{
+  std::ofstream file;
+  file.open(filename);
+  if (!file.is_open()) {
+    throw Exception("Could not open file for writing.");
+  }
+  for (size_t i = 0; i < this->graph_->numVertices(); i++) {
+    file << i << " " << this->_membership[i] << std::endl;
+  }
+  file.close();
 }
 
 }  // namespace mpl2

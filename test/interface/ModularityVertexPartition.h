@@ -91,7 +91,7 @@ class ModularityVertexPartition
       std::vector<size_t> const& coarse_node);
 
   void from_partition(ModularityVertexPartition* partition);
-
+  void writePartition(const std::string &filename) const;
   inline double total_weight_in_comm(size_t comm)
   {
     return comm < _n_communities ? this->_total_weight_in_comm[comm] : 0.0;

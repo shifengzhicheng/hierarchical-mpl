@@ -154,6 +154,8 @@ class GraphForLeidenAlgorithm
   double possible_edges(double n) const { return n * (n - 1); }
 
   GraphForLeidenAlgorithm* collapse_graph(ModularityVertexPartition* partition);
+
+void writeGraph(const std::string& filename) const;
 };
 
 }  // namespace mpl2

@@ -37,8 +37,12 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
+#include <random>
+#include <map>
+#include <fstream>
 
-namespace mpl2 {
+namespace mpl2
+{
 
 std::vector<size_t> range(size_t n)
 {
@@ -48,18 +52,20 @@ std::vector<size_t> range(size_t n)
   return range_vec;
 }
 
-bool orderCSize(const size_t* A, const size_t* B)
+bool orderCSize(const size_t *A, const size_t *B)
 {
-  if (A[1] == B[1]) {
+  if (A[1] == B[1])
+  {
     if (A[2] == B[2])
       return A[0] < B[0];
     else
       return A[2] > B[2];
-  } else
+  }
+  else
     return A[1] > B[1];
 }
 
-void shuffle(std::vector<size_t>& v)
+void shuffle(std::vector<size_t> &v)
 {
   std::random_device rd;
   std::mt19937 rng(rd());
@@ -86,13 +92,12 @@ void shuffle(std::vector<size_t>& v)
   graph.
 *****************************************************************************/
 
-GraphForLeidenAlgorithm* GraphForLeidenAlgorithm::collapse_graph(
-    ModularityVertexPartition* partition)
+GraphForLeidenAlgorithm *GraphForLeidenAlgorithm::collapse_graph(
+    ModularityVertexPartition *partition)
 {
   // Get the number of collapsed communities (vertices in the collapsed graph)
   size_t n_collapsed = partition->n_communities();
-  std::vector<std::vector<size_t>> community_memberships
-      = partition->get_communities();
+  std::vector<std::vector<size_t>> community_memberships = partition->get_communities();
 
   // Container for collapsed weights and total weight in the collapsed graph
   std::vector<std::map<int, float>> collapsed_adjacency_list(n_collapsed);
@@ -105,24 +110,29 @@ GraphForLeidenAlgorithm* GraphForLeidenAlgorithm::collapse_graph(
 
   // Iterate over each community (which corresponds to a node in the collapsed
   // graph)
-  for (size_t v_comm = 0; v_comm < n_collapsed; ++v_comm) {
+  for (size_t v_comm = 0; v_comm < n_collapsed; ++v_comm)
+  {
     std::vector<size_t> neighbour_communities;
 
     // Iterate over the nodes within this community
-    for (size_t v : community_memberships[v_comm]) {
+    for (size_t v : community_memberships[v_comm])
+    {
       // For each node, get its neighbors and their corresponding edges
-      for (int u : this->get_neighbours(v)) {
+      for (int u : this->get_neighbours(v))
+      {
         size_t u_comm = partition->membership(u);
         float w = this->getEdgeWeight(v, u);
 
         // If the graph is undirected and this is a self-loop, we need to divide
         // the weight
-        if (v == u) {
+        if (v == u)
+        {
           w /= 2.0;
         }
 
         // Add the edge weight to the collapsed community
-        if (!neighbour_comm_added[u_comm]) {
+        if (!neighbour_comm_added[u_comm])
+        {
           neighbour_comm_added[u_comm] = true;
           neighbour_communities.push_back(u_comm);
         }
@@ -131,10 +141,10 @@ GraphForLeidenAlgorithm* GraphForLeidenAlgorithm::collapse_graph(
     }
 
     // For each neighboring community, add the collapsed edge
-    for (size_t u_comm : neighbour_communities) {
+    for (size_t u_comm : neighbour_communities)
+    {
       // Add the edge between the collapsed communities
-      collapsed_adjacency_list[v_comm][u_comm]
-          += edge_weight_to_community[u_comm];
+      collapsed_adjacency_list[v_comm][u_comm] += edge_weight_to_community[u_comm];
       collapsed_weights.push_back(edge_weight_to_community[u_comm]);
       total_collapsed_weight += edge_weight_to_community[u_comm];
 
@@ -145,24 +155,43 @@ GraphForLeidenAlgorithm* GraphForLeidenAlgorithm::collapse_graph(
   }
 
   // Create the collapsed graph with the new adjacency list
-  GraphForLeidenAlgorithm* collapsed_graph
-      = new GraphForLeidenAlgorithm(n_collapsed);
+  GraphForLeidenAlgorithm *collapsed_graph = new GraphForLeidenAlgorithm(n_collapsed);
   collapsed_graph->_total_weight = total_collapsed_weight;
 
   // Copy the edges and weights into the new graph
-  for (size_t v_comm = 0; v_comm < n_collapsed; ++v_comm) {
-    for (const auto& pair : collapsed_adjacency_list[v_comm]) {
+  for (size_t v_comm = 0; v_comm < n_collapsed; ++v_comm)
+  {
+    for (const auto &pair : collapsed_adjacency_list[v_comm])
+    {
       collapsed_graph->addEdge(v_comm, pair.first, pair.second);
     }
   }
 
   // Set vertex weights for the collapsed graph (based on the size of the
   // original communities)
-  for (size_t c = 0; c < n_collapsed; ++c) {
+  for (size_t c = 0; c < n_collapsed; ++c)
+  {
     collapsed_graph->vertex_weights_[c] = partition->csize(c);
   }
 
   return collapsed_graph;
 }
 
-}  // namespace mpl2
+void GraphForLeidenAlgorithm::writeGraph(const std::string &filename) const
+{
+  std::ofstream file(filename);
+  if (!file.is_open())
+  {
+    throw std::runtime_error("Unable to open file");
+  }
+  for (size_t i = 0; i < numVertices(); ++i)
+  {
+    for (const auto &neighbor : get_neighbours(i))
+    {
+      file << i << " " << neighbor << " " << getEdgeWeight(i, neighbor) << "\n";
+    }
+  }
+  file.close();
+}
+
+} // namespace mpl2
