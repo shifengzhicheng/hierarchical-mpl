@@ -1,0 +1,144 @@
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[52]ls
+./  ../  .synopsys_dc.setup  DC/  alib-52/  bsg_chip.sdc  command.log  dc.log  default.svf  filenames.log  post_dc.tcl	pre_dc.tcl  rtl/  rtl_list.tcl	run.tcl  work/
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[53]cat .synopsys_dc.setup
+# Define the target logic library, symbol library and link library
+
+set_app_var target_library  [glob ../libs/*.db]
+set_app_var link_library $target_library
+
+source ./rtl_list.tcl
+
+set_app_var symbol_library "generic.sdb"
+
+# Synopsys Lib
+#
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  History
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# history keep 200
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  Aliases
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+alias h history
+alias rc "report_constraint -all_violators"
+alias rt report_timing
+alias ra report_area
+alias rq report_qor
+alias page_on {set sh_enable_page_mode true}
+alias page_off {set sh_enable_page_mode false}
+alias fr "remove_design -designs"
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Verify Settings
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+echo "\n=================================================================="
+echo "\nLibrary Settings:"
+echo "search_path:             $search_path"
+echo "link_library:            $link_library"
+echo "target_library:          $target_library"
+echo "symbol_library:          $symbol_library"
+echo "\n=================================================================="
+
+echo "\nI am ready...\n"
+
+
+# bsub -n 18 -J macBlkSg -q normal dc_shell -f scripts/run.tcl -o exec.log
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[54]cat run.tcl 
+source ./.synopsys_dc.setup
+source ./pre_dc.tcl
+compile_ultra -retime
+source ./post_dc.tcl
+
+report_area
+report_power
+report_timing
+
+
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[55]cat rtl_list.tcl
+# include all rtl files here
+set rtl_dir "./rtl"
+set rtl_list {
+    ./rtl/fakeram45_32x32_dp.v
+    ./rtl/bsg_chip_block.sv2v.v
+}
+
+set HYPER_DEFINE {} 
+
+proc getAllSubdirs {path} {
+    set result {}
+    foreach item [glob -nocomplain -directory $path *] {
+        if {[file isdirectory $item]} {
+            set norm [file normalize $item]
+            lappend result $norm
+            set subs [getAllSubdirs $item]
+            foreach subdir $subs {
+                lappend result $subdir
+            }
+        }
+    }
+    return $result
+}
+
+if {![info exists search_path]} {
+    set search_path {}
+}
+
+set additionalPaths [getAllSubdirs $rtl_dir]
+
+foreach p $additionalPaths {
+    if {[lsearch -exact $search_path $p] == -1} {
+        lappend search_path $p
+    }
+}
+
+
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[56]cat pre_dc.tcl
+set DESIGN_NAME        "bsg_chip"
+set CONSTRAIN_FILE     "./bsg_chip.sdc"
+set DES_LIB  "./work/"
+set OUTPUT_DIR "./DC/"
+
+
+if {![file exists $DES_LIB]} {
+    echo "Generate dir design lib"
+    sh mkdir $DES_LIB
+}
+if {![file exists ${OUTPUT_DIR}]} {
+    echo "Generate output directory"
+    sh mkdir ${OUTPUT_DIR}
+}
+define_design_lib MY_LIB -path $DES_LIB
+
+# set_svf ${OUTPUT_DIR}${DESIGN_NAME}.svf
+# saif_map -start
+# analyze -format verilog ${RTL_SOURCE_FILES} -library MY_LIB
+# elaborate ${DESIGN_NAME} -library MY_LIB
+# write -hierarchy -format ddc -output ./${OUTPUT_DIR}${DESIGN_NAME}_pre.ddc
+# source -echo -verbose ${CONSTRAIN_FILE}
+
+set_svf ${OUTPUT_DIR}${DESIGN_NAME}.svf
+saif_map -start
+foreach rtl_file $rtl_list {
+    analyze -format sverilog -define $HYPER_DEFINE $rtl_file -library MY_LIB
+}
+elaborate ${DESIGN_NAME} -library MY_LIB
+write -hierarchy -format ddc -output ${OUTPUT_DIR}${DESIGN_NAME}_pre.ddc
+source -echo -verbose ${CONSTRAIN_FILE}
+
+admin:/home/zkrpro/krzhu05/workspace/TSMC28nm/work_bsg_chip>[57]cat post_dc.tcl
+set VERILOG_OUTPUT_FILE "${DESIGN_NAME}_netlist.v"
+set DDC_OUTPUT_FILE "${DESIGN_NAME}_post.ddc"
+
+write -format verilog -hierarchy -output ${OUTPUT_DIR}/${DESIGN_NAME}_netlist.v
+write -format ddc     -hierarchy -output ${OUTPUT_DIR}/${DESIGN_NAME}_post.ddc
+write_sdf ${OUTPUT_DIR}/${DESIGN_NAME}.sdf
+write_sdc ${OUTPUT_DIR}/${DESIGN_NAME}.sdc
+set_svf -off
+rt > ${OUTPUT_DIR}/report_timing.rpt
