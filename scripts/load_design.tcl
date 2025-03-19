@@ -5,13 +5,13 @@ set tech_lef "${tech_dir}/lef/NangateOpenCellLibrary.tech.lef"
 set std_lef "${tech_dir}/lef/NangateOpenCellLibrary.macro.mod.lef"
 set case "ariane"
 set lefs "
-    ${tech_dir}/lef/fakeram45_256x16.lef
+    ./fakeram45_256x16.lef
     ${tech_dir}/lef/NangateOpenCellLibrary.macro.lef \
     ${tech_dir}/lef/NangateOpenCellLibrary.macro.rect.lef \
 "
 # Setting lib files
 set libs "
-    ${tech_dir}/lib/fakeram45_256x16.lib \
+    ./fakeram45_256x16.lib \
     ${tech_dir}/lib/NangateOpenCellLibrary_typical.lib \
 "
 
