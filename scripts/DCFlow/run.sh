@@ -1,0 +1,1 @@
+dc_shell -f -64 rundc_simple.tcl | tee dc.log
