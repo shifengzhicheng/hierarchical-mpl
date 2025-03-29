@@ -1,11 +1,15 @@
 # include all rtl files here
-set rtl_dir "./rtl"
-set rtl_list {
-    ./rtl/fakeram45_32x32_dp.v
-    ./rtl/bsg_chip_block.sv2v.v
-}
 
-set HYPER_DEFINE {} 
+set_app_var target_library  [glob ../libs/*.db]
+set_app_var link_library $target_library
+
+set HYPER_DEFINE {}
+
+set sdc_file ariane.sdc
+
+set rtl_list {
+./rtl/ariane.v
+}
 
 proc getAllSubdirs {path} {
     set result {}
@@ -26,7 +30,7 @@ if {![info exists search_path]} {
     set search_path {}
 }
 
-set additionalPaths [getAllSubdirs $rtl_dir]
+set additionalPaths [getAllSubdirs .]
 
 foreach p $additionalPaths {
     if {[lsearch -exact $search_path $p] == -1} {
